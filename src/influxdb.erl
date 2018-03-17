@@ -4,7 +4,8 @@
     query/3,
     query/4,
     write/2,
-    write/3
+    write/3,
+    write_buoy/3
 ]).
 -export_type([
     config/0,
@@ -121,3 +122,20 @@ write(#{host := Host, port := Port, username := Username, password := Password, 
     }),
     Body = influxdb_line_encoding:encode(Measurements),
     influxdb_http:post(write, Url, Username, Password, "application/octet-stream", Body, Timeout).
+
+write_buoy(#{host := Host, port := Port, username := Username, password := Password, database := Database}, Measurements, Options) ->
+    Timeout = maps:get(timeout, Options, 1000),
+    Url = influxdb_uri:encode(#{
+        scheme => "http",
+        host => Host,
+        port => Port,
+        path => "/write",
+        query => maps:fold(fun
+            (precision, Value, Acc) -> maps:put("precision", precision(Value), Acc);
+            (retention_policy, Value, Acc) -> maps:put("rp", Value, Acc);
+            (_Key, _Value, Acc) -> Acc
+        end, #{"db" => Database}, Options)
+    }),
+    Body = influxdb_line_encoding:encode(Measurements),
+    influxdb_http:post_buoy(write, Url, Username, Password, "application/octet-stream", Body, Timeout).
+

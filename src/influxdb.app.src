@@ -6,7 +6,8 @@
         kernel,
         stdlib,
         inets,
-        jsone
+        jsone,
+        buoy
     ]},
     {mod, {influxdb_app, []}},
     {registered, [influxdb_sup]},

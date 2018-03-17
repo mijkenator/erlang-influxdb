@@ -1,6 +1,7 @@
 -module(influxdb_http).
 -export([
-    post/7
+    post/7,
+    post_buoy/7
 ]).
 -export_type([
     result/0,
@@ -19,6 +20,7 @@
 post(Client, Url, Username, Password, ContentType, Body, Timeout) ->
     Authorization = "Basic " ++ base64:encode_to_string(Username ++ ":" ++ Password),
     Headers = [{"Authorization", Authorization}],
+    %io:format("POST: ~p ~n", [{Client, Url, Authorization, Headers, ContentType, Body, Timeout}]),
     case httpc:request(post,
             {binary_to_list(Url), Headers, ContentType, iolist_to_binary(Body)},
             [{timeout, Timeout}],
@@ -30,8 +32,21 @@ post(Client, Url, Username, Password, ContentType, Body, Timeout) ->
             erlang:exit(Reason)
     end.
 
+post_buoy(_, Url, Username, Password, ContentType, Body, Timeout) ->
+    BLP =  list_to_binary(base64:encode_to_string(Username ++ ":" ++ Password)),
+    Headers = [{<<"Authorization">>, <<"Basic: ", BLP/binary>>},
+               {<<"Content-Type">>, list_to_binary(ContentType)}],
+    BUrl = buoy_utils:parse_url(Url),
+    case buoy:post(BUrl, Headers, Body, Timeout) of
+        {ok, OK} -> buoy_resp(OK);
+        Error    -> erlang:exit(Error)
+    end.
 
 %% Internals
+
+buoy_resp({buoy_resp, done, RespBody, _, RespHeaders, _RB, RespCode}) ->
+    response(RespCode, RespHeaders, RespBody);
+buoy_resp(NOK) -> {error, NOK}.
 
 profile(query) ->
     influxdb_query;

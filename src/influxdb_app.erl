@@ -35,7 +35,7 @@ start(_StartType, _StartArgs) ->
         {max_keep_alive_length, 10},
         {max_pipeline_length, 0}
     ]),
-    buoy_pool:start(buoy_utils:parse_url(<<"http://10.0.0.85:8086">>), [{pool_size, 30}]),
+    %buoy_pool:start(buoy_utils:parse_url(<<"http://10.0.0.85:8086">>), [{pool_size, 30}]),
     influxdb_sup:start_link().
 
 -spec(stop(State :: term()) -> term()).

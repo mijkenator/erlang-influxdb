@@ -34,7 +34,7 @@ post(Client, Url, Username, Password, ContentType, Body, Timeout) ->
 
 post_buoy(_, Url, Username, Password, ContentType, Body, Timeout) ->
     BLP =  list_to_binary(base64:encode_to_string(Username ++ ":" ++ Password)),
-    Headers = [{<<"Authorization">>, <<"Basic: ", BLP/binary>>},
+    Headers = [{<<"Authorization">>, <<"Basic ", BLP/binary>>},
                {<<"Content-Type">>, list_to_binary(ContentType)}],
     BUrl = buoy_utils:parse_url(Url),
     case buoy:post(BUrl, Headers, Body, Timeout) of
